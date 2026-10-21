@@ -1,21 +1,51 @@
-import express from "express";
-import cors from "cors";
+
+import express from 'express';
+import cors from 'cors';
 
 const app = express();
 
 app.use(cors({ optionsSuccessStatus: 200 }));
 
-app.use(express.static("public"));
-
-app.get("/", (_req, res) => {
-  res.sendFile(import.meta.dirname + "/views/index.html");
+app.get('/', function (req, res) {
+  res.sendFile(process.cwd() + '/views/index.html');
 });
 
-// Do not change code above this line
+// التاريخ الحالي
+app.get('/api', function (req, res) {
+  const date = new Date();
 
-// Do not change code below this line
+  res.json({
+    unix: date.getTime(),
+    utc: date.toUTCString()
+  });
+});
 
-const PORT = 8000;
-const listener = app.listen(PORT, function () {
-  console.log("Your app is listening on port " + listener.address().port);
+// تاريخ محدد أو تاريخ غير صالح
+app.get('/api/:date', function (req, res) {
+  const dateInput = req.params.date;
+  let date;
+
+  if (/^-?\d+$/.test(dateInput)) {
+    date = new Date(Number(dateInput));
+  } else {
+    date = new Date(dateInput);
+  }
+
+  if (isNaN(date.getTime())) {
+    return res.json({ error: 'Invalid Date' });
+  }
+
+  res.json({
+    unix: date.getTime(),
+    utc: date.toUTCString()
+  });
+});
+
+
+const listener = app.listen(process.env.PORT || 3000, function () {
+  console.log('Your app is listening on port ' + listener.address().port);
+});
+
+listener.on('error', function (err) {
+  console.error('Server error:', err.message);
 });
